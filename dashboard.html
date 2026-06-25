@@ -4,37 +4,37 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GYMtrack — Dashboard</title>
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#639922">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="./assets/css/style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="app-shell">
 
   <div class="topbar">
-    <a href="/index.html" class="icon-btn">←</a>
+    <a href="./index.html" class="icon-btn">←</a>
     <div class="logo">GYM<span>track</span></div>
     <a href="/.netlify/functions/exportar-excel" class="icon-btn icon-btn-green" title="Excel" id="btnExcel">📊</a>
   </div>
 
   <div class="bottom-nav">
-    <a href="/index.html" class="bnav-item">
+    <a href="./index.html" class="bnav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
       <span>Inicio</span>
     </a>
-    <a href="/dashboard.html" class="bnav-item active">
+    <a href="./dashboard.html" class="bnav-item active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       <span>Progreso</span>
     </a>
-    <a href="/nuevo-entreno.html" class="bnav-center">
+    <a href="./nuevo-entreno.html" class="bnav-center">
       <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
     </a>
     <a href="/.netlify/functions/exportar-excel" class="bnav-item" id="excelNav">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       <span>Excel</span>
     </a>
-    <a href="/login.html" class="bnav-item" id="btnLogout">
+    <a href="./login.html" class="bnav-item" id="btnLogout">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
       <span>Salir</span>
     </a>
@@ -47,7 +47,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="/assets/js/gymtrack.js"></script>
+<script src="./assets/js/gymtrack.js"></script>
 <script>
 (async () => {
   const user = await GT.requireAuth();
@@ -56,7 +56,7 @@
   document.getElementById('btnLogout').addEventListener('click', async e => {
     e.preventDefault();
     await GT.sb.auth.signOut();
-    window.location.href = '/login.html';
+    window.location.href = './login.html';
   });
 
   // Excel con SheetJS
@@ -167,7 +167,7 @@
     <div class="section-block">
       <div class="section-block-title">Últimos entrenos</div>
       ${ultimos5.map(e => `
-        <a href="/detalle.html?id=${e.id}" class="ultimo-row">
+        <a href="./detalle.html?id=${e.id}" class="ultimo-row">
           <div><div class="ultimo-nombre">${e.nombre}</div><div class="ultimo-sub">${e.ejercicios.map(ej=>ej.nombre).join(', ')}</div></div>
           <div class="ultimo-right"><div class="ultimo-fecha">${new Date(e.fecha+'T00:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'})}</div></div>
         </a>`).join('')}

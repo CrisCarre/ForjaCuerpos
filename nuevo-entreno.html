@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GYMtrack — Nuevo entreno</title>
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#639922">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="./assets/css/style.css">
 </head>
 <body>
 <div class="app-shell">
   <div class="topbar">
-    <a href="/index.html" class="icon-btn">←</a>
+    <a href="./index.html" class="icon-btn">←</a>
     <div class="page-title">Nuevo entreno</div>
     <div class="date-badge" id="fechaHoy"></div>
   </div>
@@ -50,7 +50,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/assets/js/gymtrack.js"></script>
+<script src="./assets/js/gymtrack.js"></script>
 <script>
 const EJERCICIOS_BD = [
   {nombre:'Press banca',cat:'Pecho'},{nombre:'Press inclinado',cat:'Pecho'},{nombre:'Aperturas',cat:'Pecho'},
@@ -169,7 +169,7 @@ async function guardar() {
       }
     }
 
-    window.location.href = `/detalle.html?id=${entreno.id}`;
+    window.location.href = `./detalle.html?id=${entreno.id}`;
   } catch (err) {
     GT.showToast('Error al guardar: ' + (err.message || 'desconocido'), 'error');
     btn.textContent = 'Guardar entreno'; btn.disabled = false;

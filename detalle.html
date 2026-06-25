@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GYMtrack — Detalle</title>
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#639922">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="./assets/css/style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="app-shell">
 
   <div class="topbar">
-    <a href="/index.html" class="icon-btn">←</a>
+    <a href="./index.html" class="icon-btn">←</a>
     <div class="page-title" id="pageTitle">Entreno</div>
     <div class="icon-btn"></div>
   </div>
@@ -24,14 +24,14 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/assets/js/gymtrack.js"></script>
+<script src="./assets/js/gymtrack.js"></script>
 <script>
 (async () => {
   const user = await GT.requireAuth();
   if (!user) return;
 
   const id = new URLSearchParams(window.location.search).get('id');
-  if (!id) { window.location.href = '/index.html'; return; }
+  if (!id) { window.location.href = './index.html'; return; }
 
   // Cargar entreno completo
   const { data: entreno, error } = await GT.sb
@@ -41,7 +41,7 @@
     .eq('usuario_id', user.id)
     .single();
 
-  if (error || !entreno) { window.location.href = '/index.html'; return; }
+  if (error || !entreno) { window.location.href = './index.html'; return; }
 
   document.getElementById('pageTitle').textContent = entreno.nombre;
 
@@ -150,7 +150,7 @@
 async function eliminar(id) {
   if (!confirm('¿Eliminar este entreno? No se puede deshacer.')) return;
   const { error } = await GT.sb.from('entrenos').delete().eq('id', id);
-  if (!error) window.location.href = '/index.html';
+  if (!error) window.location.href = './index.html';
   else GT.showToast('Error al eliminar', 'error');
 }
 </script>

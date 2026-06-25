@@ -8,13 +8,13 @@ const GT = (() => {
 
   async function requireAuth() {
     const { data: { user } } = await sb.auth.getUser();
-    if (!user) { window.location.href = '/login.html'; return null; }
+    if (!user) { window.location.href = './login.html'; return null; }
     return user;
   }
 
   async function requireGuest() {
     const { data: { user } } = await sb.auth.getUser();
-    if (user) window.location.href = '/index.html';
+    if (user) window.location.href = './index.html';
   }
 
   function formatRelativa(dateStr) {
