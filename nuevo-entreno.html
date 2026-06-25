@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GYMtrack — Nuevo entreno</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#639922">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <div class="topbar">
+    <a href="/index.html" class="icon-btn">←</a>
+    <div class="page-title">Nuevo entreno</div>
+    <div class="date-badge" id="fechaHoy"></div>
+  </div>
+
+  <div class="form-body">
+    <div class="field">
+      <label>Nombre del entreno</label>
+      <input type="text" id="nombreEntreno" placeholder="ej. Pecho y tríceps">
+    </div>
+    <div class="sugerencias">
+      <button class="sug" onclick="setNombre(this)">Pecho + Tríceps</button>
+      <button class="sug" onclick="setNombre(this)">Espalda + Bíceps</button>
+      <button class="sug" onclick="setNombre(this)">Pierna</button>
+      <button class="sug" onclick="setNombre(this)">Hombros</button>
+      <button class="sug" onclick="setNombre(this)">Full Body</button>
+      <button class="sug" onclick="setNombre(this)">Cardio</button>
+    </div>
+
+    <div class="field" style="margin-top:1.5rem">
+      <label>Fecha</label>
+      <input type="date" id="fechaInput">
+    </div>
+
+    <div class="section-sep">Ejercicios</div>
+    <div id="ejLista"></div>
+    <button type="button" class="add-ej-btn" onclick="addEjercicio()">+ Añadir ejercicio</button>
+
+    <div class="section-sep">Notas</div>
+    <textarea id="notas" placeholder="¿Cómo te has sentido? Lesiones, observaciones..." rows="3"
+      style="width:100%;padding:10px 12px;border:0.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;resize:none;background:var(--bg);color:var(--text)"></textarea>
+
+    <button class="btn-primary btn-block" style="margin-top:1.5rem" id="btnGuardar" onclick="guardar()">
+      Guardar entreno
+    </button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/gymtrack.js"></script>
+<script>
+const EJERCICIOS_BD = [
+  {nombre:'Press banca',cat:'Pecho'},{nombre:'Press inclinado',cat:'Pecho'},{nombre:'Aperturas',cat:'Pecho'},
+  {nombre:'Fondos',cat:'Tríceps'},{nombre:'Extensión tríceps',cat:'Tríceps'},{nombre:'Press francés',cat:'Tríceps'},
+  {nombre:'Sentadilla',cat:'Pierna'},{nombre:'Prensa de pierna',cat:'Pierna'},{nombre:'Femoral tumbado',cat:'Pierna'},
+  {nombre:'Peso muerto',cat:'Espalda'},{nombre:'Dominadas',cat:'Espalda'},{nombre:'Remo con barra',cat:'Espalda'},
+  {nombre:'Jalón al pecho',cat:'Espalda'},{nombre:'Press militar',cat:'Hombros'},{nombre:'Elevaciones laterales',cat:'Hombros'},
+  {nombre:'Curl bíceps',cat:'Bíceps'},{nombre:'Curl martillo',cat:'Bíceps'},{nombre:'Plancha',cat:'Core'},{nombre:'Crunch',cat:'Core'},
+];
+
+let user, ejercicios = [];
+
+(async () => {
+  user = await GT.requireAuth();
+  if (!user) return;
+
+  const hoy = new Date();
+  document.getElementById('fechaInput').value = hoy.toISOString().split('T')[0];
+  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  document.getElementById('fechaHoy').textContent = `${dias[hoy.getDay()]}, ${hoy.getDate()} ${meses[hoy.getMonth()]}`;
+
+  addEjercicio();
+})();
+
+function setNombre(btn) {
+  document.getElementById('nombreEntreno').value = btn.textContent;
+  document.querySelectorAll('.sug').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function addEjercicio() {
+  ejercicios.push({ id: Date.now(), nombre: '', cat: '', series: [{ reps: '', kg: '' }] });
+  render();
+}
+function delEjercicio(id) { ejercicios = ejercicios.filter(e => e.id !== id); render(); }
+function addSerie(id) { const e = ejercicios.find(e => e.id === id); if (e) e.series.push({ reps: '', kg: '' }); render(); }
+function delSerie(id, si) { const e = ejercicios.find(e => e.id === id); if (e && e.series.length > 1) e.series.splice(si, 1); render(); }
+function cambiarEj(id, val) { const e = ejercicios.find(e => e.id === id); if (!e) return; const [n, c] = val.split('|'); e.nombre = n; e.cat = c; render(); }
+function setSerie(id, si, field, val) { const e = ejercicios.find(e => e.id === id); if (e && e.series[si]) e.series[si][field] = val; }
+
+function render() {
+  const lista = document.getElementById('ejLista');
+  lista.innerHTML = '';
+  ejercicios.forEach(ej => {
+    const div = document.createElement('div');
+    div.className = 'ejercicio-card';
+    div.innerHTML = `
+      <div class="ej-header">
+        <select onchange="cambiarEj(${ej.id}, this.value)" style="flex:1;padding:7px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+          <option value="">Seleccionar ejercicio...</option>
+          ${EJERCICIOS_BD.map(e => `<option value="${e.nombre}|${e.cat}" ${ej.nombre===e.nombre?'selected':''}>${e.nombre} (${e.cat})</option>`).join('')}
+          <option value="_custom|">+ Personalizado</option>
+        </select>
+        <button type="button" class="del-ej" onclick="delEjercicio(${ej.id})">×</button>
+      </div>
+      ${ej.nombre === '_custom' ? `<input type="text" placeholder="Nombre del ejercicio" class="custom-input" onchange="ejercicios.find(e=>e.id===${ej.id}).nombre=this.value">` : ''}
+      <table class="series-table">
+        <thead><tr><th>#</th><th>Reps</th><th>Peso kg</th><th></th></tr></thead>
+        <tbody>
+          ${ej.series.map((s, si) => `<tr>
+            <td class="serie-num">${si+1}</td>
+            <td><input type="number" min="1" placeholder="8" value="${s.reps}" onchange="setSerie(${ej.id},${si},'reps',this.value)"></td>
+            <td><input type="number" min="0" step="0.5" placeholder="0" value="${s.kg}" onchange="setSerie(${ej.id},${si},'kg',this.value)"></td>
+            <td><button type="button" class="del-serie" onclick="delSerie(${ej.id},${si})">×</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <button type="button" class="add-serie" onclick="addSerie(${ej.id})">+ Serie</button>
+    `;
+    lista.appendChild(div);
+  });
+}
+
+async function guardar() {
+  const nombre = document.getElementById('nombreEntreno').value.trim();
+  const fecha  = document.getElementById('fechaInput').value;
+  const notas  = document.getElementById('notas').value.trim();
+  const btn    = document.getElementById('btnGuardar');
+
+  if (!nombre) { GT.showToast('Escribe un nombre para el entreno', 'error'); return; }
+
+  btn.textContent = 'Guardando...'; btn.disabled = true;
+
+  try {
+    // 1. Insertar entreno
+    const { data: entreno, error: e1 } = await GT.sb
+      .from('entrenos')
+      .insert({ usuario_id: user.id, nombre, fecha, notas })
+      .select().single();
+    if (e1) throw e1;
+
+    // 2. Insertar ejercicios y series
+    for (let i = 0; i < ejercicios.length; i++) {
+      const ej = ejercicios[i];
+      if (!ej.nombre || ej.nombre === '_custom') continue;
+
+      const { data: ejData, error: e2 } = await GT.sb
+        .from('ejercicios')
+        .insert({ entreno_id: entreno.id, nombre: ej.nombre, categoria: ej.cat, orden: i })
+        .select().single();
+      if (e2) throw e2;
+
+      const seriesRows = ej.series
+        .filter(s => s.reps || s.kg)
+        .map((s, idx) => ({
+          ejercicio_id: ejData.id,
+          numero_serie: idx + 1,
+          reps:    parseInt(s.reps)   || 0,
+          peso_kg: parseFloat(s.kg)   || 0,
+        }));
+
+      if (seriesRows.length) {
+        const { error: e3 } = await GT.sb.from('series').insert(seriesRows);
+        if (e3) throw e3;
+      }
+    }
+
+    window.location.href = `/detalle.html?id=${entreno.id}`;
+  } catch (err) {
+    GT.showToast('Error al guardar: ' + (err.message || 'desconocido'), 'error');
+    btn.textContent = 'Guardar entreno'; btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
