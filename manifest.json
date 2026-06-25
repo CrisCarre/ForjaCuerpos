@@ -1,8 +1,8 @@
 {
-  "name": "GYMtrack",
-  "short_name": "GYMtrack",
+  "name": "Forja-Kuerpo",
+  "short_name": "Forja-Kuerpo",
   "description": "Tu historial de entrenos",
-  "start_url": "index.php",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#639922",
@@ -25,7 +25,7 @@
     {
       "name": "Nuevo entreno",
       "short_name": "Entrenar",
-      "url": "entreno_activo.php",
+      "url": "./nuevo-entreno.html",
       "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
