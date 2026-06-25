@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Forja-Kuerpo — Entrenando</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#09090b">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <style>
+        /* ── ENTRENO ACTIVO ── */
+        .active-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px 8px;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .tabs-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .session-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--lime-dim);
+            border: 1px solid rgba(163, 230, 53, .25);
+            border-radius: 20px;
+            padding: 5px 12px 5px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--lime);
+            font-family: var(--font-disp);
+            letter-spacing: .05em;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .session-tab-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .session-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--lime);
+            flex-shrink: 0;
+            animation: blink 1.2s infinite;
+        }
+
+        .btn-pausa {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--border2);
+            background: var(--bg3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text2);
+            font-size: 15px;
+            flex-shrink: 0;
+            transition: all .15s;
+        }
+
+        .btn-pausa.pausado {
+            background: rgba(251, 191, 36, .12);
+            color: var(--amber);
+            border-color: rgba(251, 191, 36, .3)
+        }
+
+        .timer-tab {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-end;
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            border-radius: 20px;
+            padding: 4px 10px;
+            flex: 1;
+            flex-shrink: 0;
+            max-width: 110px;
+        }
+
+        .timer-label {
+            font-size: 8px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            font-family: var(--font-mono);
+            line-height: 1;
+            margin-bottom: 1px
+        }
+
+        .timer-val {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1;
+            font-variant-numeric: tabular-nums
+        }
+
+        /* PROGRESO */
+        .active-prog {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px 6px
+        }
+
+        .active-prog-track {
+            flex: 1;
+            height: 3px;
+            background: var(--bg3);
+            border-radius: 2px;
+            overflow: hidden
+        }
+
+        .active-prog-fill {
+            height: 100%;
+            background: var(--lime);
+            border-radius: 2px;
+            transition: width .4s
+        }
+
+        .active-prog-lbl {
+            font-size: 10px;
+            color: var(--text3);
+            white-space: nowrap;
+            font-family: var(--font-mono)
+        }
+
+        /* BANNER DESCANSO */
+        .rest-banner {
+            background: var(--lime-dim);
+            border: 1px solid rgba(163, 230, 53, .2);
+            margin: 0 14px 8px;
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+        }
+
+        .rest-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px
+        }
+
+        .rest-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--lime);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-family: var(--font-mono)
+        }
+
+        .rest-next {
+            font-size: 11px;
+            color: rgba(163, 230, 53, .7)
+        }
+
+        .rest-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px
+        }
+
+        .rest-adj {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(163, 230, 53, .4);
+            background: rgba(255, 255, 255, .05);
+            color: var(--lime);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            transition: background .12s;
+        }
+
+        .rest-adj:hover {
+            background: var(--lime-dim)
+        }
+
+        .rest-adj:active {
+            transform: scale(.95)
+        }
+
+        .rest-time-big {
+            font-family: var(--font-disp);
+            font-size: 3rem;
+            color: var(--lime);
+            font-variant-numeric: tabular-nums;
+            min-width: 100px;
+            text-align: center;
+            line-height: 1;
+            letter-spacing: .05em;
+        }
+
+        .rest-time-big.urgente {
+            color: var(--red)
+        }
+
+        .rest-bottom {
+            display: flex;
+            justify-content: center;
+            margin-top: 8px
+        }
+
+        .skip-btn {
+            font-size: 11px;
+            color: var(--lime);
+            background: transparent;
+            border: 1px solid rgba(163, 230, 53, .3);
+            border-radius: 20px;
+            padding: 4px 16px;
+            cursor: pointer;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .skip-btn:hover {
+            background: var(--lime-dim)
+        }
+
+        /* EJERCICIOS */
+        .ej-list {
+            padding: 0 14px 100px
+        }
+
+        .ej-bloque {
+            margin-bottom: 10px
+        }
+
+        .ej-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        .ej-header.done {
+            background: var(--bg2);
+            border-color: rgba(163, 230, 53, .2)
+        }
+
+        .ej-header.active {
+            background: var(--lime);
+            border-color: var(--lime);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+            border-bottom: none
+        }
+
+        .ej-header.todo {
+            background: var(--bg2);
+            opacity: .5
+        }
+
+        .ej-status {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .st-done {
+            background: rgba(255, 255, 255, .15);
+            color: #1a3a00
+        }
+
+        .st-active {
+            background: rgba(0, 0, 0, .2);
+            color: var(--bg)
+        }
+
+        .st-todo {
+            background: rgba(255, 255, 255, .06);
+            color: var(--text3)
+        }
+
+        .ej-info {
+            flex: 1;
+            min-width: 0
+        }
+
+        .ej-name {
+            font-size: 14px;
+            font-weight: 600
+        }
+
+        .ej-name.done {
+            color: rgba(163, 230, 53, .8)
+        }
+
+        .ej-name.active {
+            color: var(--bg);
+            font-family: var(--font-disp);
+            letter-spacing: .03em;
+            font-size: 16px
+        }
+
+        .ej-name.todo {
+            color: var(--text3)
+        }
+
+        .ej-sub {
+            font-size: 11px;
+            margin-top: 1px;
+            font-family: var(--font-mono)
+        }
+
+        .ej-sub.done {
+            color: rgba(163, 230, 53, .6)
+        }
+
+        .ej-sub.active {
+            color: rgba(0, 0, 0, .5)
+        }
+
+        .ej-sub.todo {
+            color: var(--text3)
+        }
+
+        .ej-pr {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            flex-shrink: 0;
+            background: rgba(251, 191, 36, .15);
+            color: var(--amber);
+            border: 1px solid rgba(251, 191, 36, .2);
+        }
+
+        .ej-pr.active {
+            background: rgba(0, 0, 0, .2);
+            color: var(--bg);
+            border-color: transparent
+        }
+
+        /* SERIES */
+        .series-activo {
+            border: 1px solid rgba(163, 230, 53, .25);
+            border-top: none;
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+            padding: 6px 12px 10px;
+            background: var(--bg2);
+        }
+
+        .serie-activo-row {
+            display: grid;
+            grid-template-columns: 20px 1fr 1fr 36px;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .serie-activo-row:last-of-type {
+            border-bottom: none
+        }
+
+        .s-num {
+            font-size: 11px;
+            color: var(--text3);
+            text-align: center;
+            font-family: var(--font-mono)
+        }
+
+        .inp-a {
+            font-size: 15px;
+            font-weight: 700;
+            text-align: center;
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 6px 2px;
+            background: var(--bg3);
+            color: var(--text);
+            font-family: var(--font-mono);
+            -webkit-appearance: none;
+            outline: none;
+            transition: border-color .15s;
+        }
+
+        .inp-a:focus {
+            border-color: var(--lime);
+            background: var(--bg2)
+        }
+
+        .inp-a.done-val {
+            color: var(--lime);
+            border-color: rgba(163, 230, 53, .3);
+            background: var(--lime-dim)
+        }
+
+        .inp-a.pr-val {
+            color: var(--amber);
+            border-color: rgba(251, 191, 36, .3);
+            background: rgba(251, 191, 36, .08)
+        }
+
+        .chk-a {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border2);
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text3);
+            transition: all .15s;
+        }
+
+        .chk-a.done {
+            background: var(--lime-dim);
+            border-color: var(--lime);
+            color: var(--lime)
+        }
+
+        .chk-a.current {
+            background: var(--lime);
+            border-color: var(--lime);
+            color: var(--bg);
+            animation: pulsarBtn 1.4s infinite
+        }
+
+        @keyframes pulsarBtn {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.12)
+            }
+        }
+
+        .add-serie-a {
+            font-size: 10px;
+            color: var(--lime);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px 0 0;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+
+        /* MODAL EJERCICIO */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .7);
+            z-index: 50;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .modal-sheet {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--bg2);
+            border-radius: 16px 16px 0 0;
+            border: 1px solid var(--border);
+            padding: 1rem;
+            max-height: 70vh;
+            overflow-y: auto;
+            animation: slideUp .2s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%)
+            }
+
+            to {
+                transform: translateY(0)
+            }
+        }
+
+        .modal-title {
+            font-family: var(--font-disp);
+            font-size: 1.2rem;
+            letter-spacing: .05em;
+            color: var(--text);
+            margin-bottom: .75rem
+        }
+
+        .modal-search {
+            width: 100%;
+            padding: 9px 12px;
+            margin-bottom: .75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg3);
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .modal-search:focus {
+            border-color: var(--lime)
+        }
+
+        .ej-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .12s;
+        }
+
+        .ej-btn:hover {
+            border-color: var(--lime);
+            color: var(--lime)
+        }
+
+        .ej-cat-label {
+            font-size: 10px;
+            color: var(--text3);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            padding: 8px 0 4px
+        }
+
+        /* BOTTOM BAR */
+        .active-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+            padding: 10px 14px 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 15;
+        }
+
+        .btn-add-ej {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border2);
+            background: var(--bg3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text2);
+            font-size: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all .15s;
+        }
+
+        .btn-add-ej:hover {
+            border-color: var(--lime);
+            color: var(--lime)
+        }
+
+        .btn-finalizar {
+            flex: 1;
+            padding: 12px;
+            background: var(--lime);
+            color: var(--bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            transition: opacity .15s;
+        }
+
+        .btn-finalizar:hover {
+            opacity: .88
+        }
+
+        .btn-finalizar:disabled {
+            opacity: .4;
+            cursor: not-allowed
+        }
+
+        .nombre-input {
+            width: 100%;
+            padding: 10px 12px;
+            margin: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg2);
+            color: var(--text);
+            font-size: 14px;
+            font-family: var(--font-disp);
+            letter-spacing: .05em;
+            outline: none;
+            width: calc(100% - 28px);
+        }
+
+        .nombre-input:focus {
+            border-color: var(--lime)
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-shell">
+
+        <!-- TOPBAR -->
+        <div class="active-topbar">
+            <button class="btn-pausa" id="btnCerrar" style="margin-right:6px" onclick="confirmarSalida()">✕</button>
+            <div class="tabs-row">
+                <div class="session-tab">
+                    <span class="session-dot"></span>
+                    <span class="session-tab-name" id="sessionName">Nuevo entreno</span>
+                </div>
+                <button class="btn-pausa" id="btnPausa" onclick="togglePausa()">⏸</button>
+                <div class="timer-tab">
+                    <div class="timer-label">tiempo</div>
+                    <div class="timer-val" id="crono">00:00:00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nombre editable -->
+        <input class="nombre-input" id="nombreEntreno" placeholder="Nombre del entreno..." maxlength="60">
+
+        <!-- PROGRESO -->
+        <div class="active-prog">
+            <div class="active-prog-track">
+                <div class="active-prog-fill" id="progFill" style="width:0%"></div>
+            </div>
+            <div class="active-prog-lbl" id="progLbl">0 / 0 ej.</div>
+        </div>
+
+        <!-- BANNER DESCANSO -->
+        <div class="rest-banner hidden" id="restBanner">
+            <div class="rest-top">
+                <div class="rest-title">💤 Descansando</div>
+                <div class="rest-next" id="restNext"></div>
+            </div>
+            <div class="rest-row">
+                <button class="rest-adj" onclick="adjRest(-5)">−5s</button>
+                <div class="rest-time-big" id="restTimer">01:30</div>
+                <button class="rest-adj" onclick="adjRest(5)">+5s</button>
+            </div>
+            <div class="rest-bottom">
+                <button class="skip-btn" onclick="skipRest()">Saltar descanso</button>
+            </div>
+        </div>
+
+        <!-- LISTA EJERCICIOS -->
+        <div class="ej-list" id="ejLista"></div>
+
+        <!-- BOTTOM -->
+        <div class="active-bottom">
+            <button class="btn-add-ej" onclick="abrirModal()" title="Añadir ejercicio">＋</button>
+            <button class="btn-finalizar" id="btnFinalizar" onclick="finalizarEntreno()">Finalizar entreno</button>
+        </div>
+
+    </div>
+
+    <!-- MODAL EJERCICIOS -->
+    <div class="modal-overlay hidden" id="modal" onclick="cerrarModal(event)">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="modal-title">Añadir ejercicio</div>
+            <input class="modal-search" id="modalSearch" placeholder="Buscar o escribir nombre..."
+                oninput="filtrarEjs()">
+            <div id="modalLista"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./assets/js/gymtrack.js"></script>
+    <script>
+        // ── CONFIG ──────────────────────────────────────────────────────────
+        const RESTO_DEFAULT = 90; // segundos
+
+        const EJS_BD = {
+            'Pecho': ['Press banca', 'Press inclinado', 'Press declinado', 'Aperturas', 'Fondos en paralelas', 'Cruce de poleas'],
+            'Espalda': ['Peso muerto', 'Dominadas', 'Remo con barra', 'Remo con mancuerna', 'Jalón al pecho', 'Pullover'],
+            'Hombros': ['Press militar', 'Elevaciones laterales', 'Elevaciones frontales', 'Pájaros', 'Face pull'],
+            'Bíceps': ['Curl con barra', 'Curl con mancuerna', 'Curl martillo', 'Curl concentrado', 'Curl en polea'],
+            'Tríceps': ['Press francés', 'Extensión en polea', 'Fondos', 'Patada de tríceps', 'Extensión con mancuerna'],
+            'Pierna': ['Sentadilla', 'Prensa de pierna', 'Extensión de cuádriceps', 'Femoral tumbado', 'Peso muerto rumano', 'Zancadas', 'Pantorrillas'],
+            'Core': ['Plancha', 'Crunch', 'Crunch en polea', 'Elevación de piernas', 'Rueda abdominal'],
+            'Cardio': ['Correr', 'Bicicleta', 'Elíptica', 'Remo', 'HIIT'],
+        };
+
+        // ── ESTADO ──────────────────────────────────────────────────────────
+        let user = null;
+        let ejercicios = [];       // [{id, nombre, cat, series:[{reps,kg,done}]}]
+        let prs = {};              // {nombre_lower: max_kg}
+        let nuevoPR = new Set();   // ids de series que son PR
+
+        let totalSecs = 0, pausado = false;
+        let restSecs = RESTO_DEFAULT, restActive = false;
+        let audioCtx = null;
+
+        // ── INIT ─────────────────────────────────────────────────────────────
+        (async () => {
+            user = await GT.requireAuth();
+            if (!user) return;
+
+            // Cargar PRs del usuario desde Supabase
+            const { data } = await GT.sb
+                .from('series')
+                .select('peso_kg, ejercicios!inner(nombre, entrenos!inner(usuario_id))')
+                .eq('ejercicios.entrenos.usuario_id', user.id);
+
+            if (data) {
+                for (const s of data) {
+                    const nombre = s.ejercicios?.nombre?.toLowerCase().trim();
+                    if (nombre && s.peso_kg > (prs[nombre] || 0)) prs[nombre] = s.peso_kg;
+                }
+            }
+
+            // Cronómetro
+            setInterval(() => {
+                if (pausado) return;
+                totalSecs++;
+                document.getElementById('crono').textContent = fmtTime(totalSecs);
+            }, 1000);
+
+            // Timer descanso
+            setInterval(() => {
+                if (pausado || !restActive || restSecs <= 0) return;
+                restSecs--;
+                updateRestDisplay();
+                if (restSecs <= 0) {
+                    sonidoFin();
+                    document.getElementById('restBanner').classList.add('hidden');
+                    restActive = false;
+                }
+            }, 1000);
+
+            // Añadir primer ejercicio automáticamente
+            addEjercicio('Press banca', 'Pecho');
+            document.getElementById('nombreEntreno').focus();
+        })();
+
+        // ── CRONÓMETRO ────────────────────────────────────────────────────────
+        function fmtTime(s) {
+            const h = String(Math.floor(s / 3600)).padStart(2, '0');
+            const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+            const sc = String(s % 60).padStart(2, '0');
+            return `${h}:${m}:${sc}`;
+        }
+
+        function togglePausa() {
+            pausado = !pausado;
+            const btn = document.getElementById('btnPausa');
+            btn.textContent = pausado ? '▶' : '⏸';
+            btn.classList.toggle('pausado', pausado);
+        }
+
+        // ── DESCANSO ──────────────────────────────────────────────────────────
+        function startRest(nextNombre) {
+            restSecs = RESTO_DEFAULT;
+            restActive = true;
+            document.getElementById('restNext').textContent = nextNombre ? `Próx: ${nextNombre}` : '';
+            document.getElementById('restBanner').classList.remove('hidden');
+            updateRestDisplay();
+        }
+
+        function updateRestDisplay() {
+            const el = document.getElementById('restTimer');
+            const m = String(Math.floor(Math.max(restSecs, 0) / 60)).padStart(2, '0');
+            const s = String(Math.max(restSecs, 0) % 60).padStart(2, '0');
+            el.textContent = `${m}:${s}`;
+            el.classList.toggle('urgente', restSecs <= 10 && restSecs > 0);
+        }
+
+        function adjRest(d) { restSecs = Math.max(5, restSecs + d); updateRestDisplay(); }
+        function skipRest() { document.getElementById('restBanner').classList.add('hidden'); restActive = false; }
+
+        // ── SONIDO + VIBRACIÓN ────────────────────────────────────────────────
+        function sonidoFin() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const beep = (freq, t) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.frequency.value = freq;
+                    const ct = audioCtx.currentTime + t;
+                    gain.gain.setValueAtTime(0, ct);
+                    gain.gain.linearRampToValueAtTime(.4, ct + .01);
+                    gain.gain.exponentialRampToValueAtTime(.001, ct + .22);
+                    osc.start(ct); osc.stop(ct + .25);
+                };
+                beep(880, 0); beep(880, .3); beep(1320, .6);
+                navigator.vibrate?.([250, 120, 250, 120, 400]);
+            } catch { }
+        }
+
+        // ── EJERCICIOS ────────────────────────────────────────────────────────
+        function addEjercicio(nombre, cat) {
+            ejercicios.push({
+                id: Date.now() + Math.random(),
+                nombre: nombre || '',
+                cat: cat || '',
+                series: [{ reps: '', kg: '', done: false }]
+            });
+            render();
+        }
+
+        function delEjercicio(id) {
+            ejercicios = ejercicios.filter(e => e.id !== id);
+            render();
+        }
+
+        function addSerie(id) {
+            const e = ejercicios.find(e => e.id === id);
+            if (e) {
+                // Sugiere el kg de la última serie
+                const last = e.series[e.series.length - 1];
+                e.series.push({ reps: last?.reps || '', kg: last?.kg || '', done: false });
+                render();
+            }
+        }
+
+        function delSerie(id, si) {
+            const e = ejercicios.find(e => e.id === id);
+            if (e && e.series.length > 1) { e.series.splice(si, 1); render(); }
+        }
+
+        function completarSerie(id, si) {
+            const e = ejercicios.find(e => e.id === id);
+            if (!e) return;
+            const s = e.series[si];
+            s.done = true;
+
+            // Detectar PR
+            const nombre = e.nombre.toLowerCase().trim();
+            const kg = parseFloat(s.kg) || 0;
+            if (kg > 0 && kg > (prs[nombre] || 0)) {
+                prs[nombre] = kg;
+                nuevoPR.add(`${id}-${si}`);
+            }
+
+            // Next exercise hint
+            const curIdx = ejercicios.indexOf(e);
+            const next = ejercicios[curIdx + 1];
+            startRest(next ? next.nombre : null);
+            render();
+        }
+
+        function getEstado(ej) {
+            if (!ej.series.length) return 'todo';
+            if (ej.series.every(s => s.done)) return 'done';
+            if (ej.series.some(s => s.done)) return 'active';
+            return 'todo';
+        }
+
+        // ── RENDER ────────────────────────────────────────────────────────────
+        function render() {
+            const lista = document.getElementById('ejLista');
+            lista.innerHTML = '';
+
+            const total = ejercicios.length;
+            const completados = ejercicios.filter(e => getEstado(e) === 'done').length;
+            document.getElementById('progFill').style.width = total > 0 ? Math.round(completados / total * 100) + '%' : '0%';
+            document.getElementById('progLbl').textContent = `${completados} / ${total} ej.`;
+
+            ejercicios.forEach((ej, ei) => {
+                const estado = getEstado(ej);
+                const seriesDone = ej.series.filter(s => s.done).length;
+                const seriesTotal = ej.series.length;
+                const prActual = prs[ej.nombre.toLowerCase().trim()] || 0;
+
+                const bloque = document.createElement('div');
+                bloque.className = 'ej-bloque';
+
+                // Cabecera
+                const headerClick = estado !== 'todo' ? 'onclick="toggleSeries(this)"' : '';
+                const prBadge = prActual > 0 && estado !== 'todo'
+                    ? `<span class="ej-pr ${estado === 'active' ? 'active' : ''}">${prActual}kg PR</span>` : '';
+
+                bloque.innerHTML = `
+      <div class="ej-header ${estado}" data-eid="${ej.id}" ${headerClick}>
+        <div class="ej-status ${estado === 'done' ? 'st-done' : estado === 'active' ? 'st-active' : 'st-todo'}">
+          ${estado === 'done' ? '✓' : ei + 1}
+        </div>
+        <div class="ej-info">
+          <div class="ej-name ${estado}">${ej.nombre || 'Ejercicio'}</div>
+          <div class="ej-sub ${estado}">
+            ${estado === 'done' ? `${seriesTotal} series · máx ${Math.max(...ej.series.map(s => parseFloat(s.kg) || 0))}kg`
+                        : estado === 'active' ? `Serie ${seriesDone + 1} de ${seriesTotal}`
+                            : `${seriesTotal} series`}
+          </div>
+        </div>
+        ${prBadge}
+        ${estado === 'todo' ? `<button onclick="delEjercicio(${ej.id});event.stopPropagation()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px">✕</button>` : ''}
+      </div>
+
+      ${estado !== 'todo' ? `
+      <div class="series-activo" id="series-${ej.id}">
+        ${ej.series.map((s, si) => {
+                                const esPR = nuevoPR.has(`${ej.id}-${si}`);
+                                const siguienteSinHacer = !s.done && si === ej.series.filter(x => x.done).length;
+                                return `
+          <div class="serie-activo-row">
+            <div class="s-num">${si + 1}</div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="font-size:9px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase">reps</div>
+              <input class="inp-a ${s.done ? (esPR ? 'pr-val' : 'done-val') : ''}" type="number" min="1"
+                     value="${s.reps}" placeholder="—"
+                     ${s.done ? 'readonly' : ''}
+                     onchange="ejercicios.find(e=>e.id===${ej.id}).series[${si}].reps=this.value">
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="font-size:9px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase">kg</div>
+              <input class="inp-a ${s.done ? (esPR ? 'pr-val' : 'done-val') : ''}" type="number" min="0" step=".5"
+                     value="${s.kg}" placeholder="—"
+                     ${s.done ? 'readonly' : ''}
+                     onchange="ejercicios.find(e=>e.id===${ej.id}).series[${si}].kg=this.value">
+            </div>
+            <button class="chk-a ${s.done ? 'done' : siguienteSinHacer ? 'current' : ''}"
+              ${!s.done && siguienteSinHacer ? `onclick="completarSerie(${ej.id},${si})"` : ''}>✓
+              ${esPR ? '🏆' : ''}
+            </button>
+          </div>`;
+                            }).join('')}
+        <button class="add-serie-a" onclick="addSerie(${ej.id})">+ Serie</button>
+      </div>` : ''}
+    `;
+                lista.appendChild(bloque);
+            });
+        }
+
+        function toggleSeries(header) {
+            const id = header.dataset.eid;
+            const el = document.getElementById('series-' + id);
+            if (el) el.classList.toggle('hidden');
+        }
+
+        // ── MODAL EJERCICIOS ──────────────────────────────────────────────────
+        function abrirModal() {
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modalSearch').value = '';
+            filtrarEjs();
+            setTimeout(() => document.getElementById('modalSearch').focus(), 100);
+        }
+
+        function cerrarModal(e) {
+            if (!e || e.target === document.getElementById('modal'))
+                document.getElementById('modal').classList.add('hidden');
+        }
+
+        function filtrarEjs() {
+            const q = document.getElementById('modalSearch').value.toLowerCase();
+            const lista = document.getElementById('modalLista');
+            let html = '';
+
+            if (q && q.length > 1) {
+                // Buscar en todos
+                const resultados = [];
+                for (const [cat, ejs] of Object.entries(EJS_BD))
+                    ejs.forEach(ej => { if (ej.toLowerCase().includes(q)) resultados.push({ ej, cat }); });
+                if (resultados.length) {
+                    resultados.forEach(({ ej, cat }) => {
+                        html += `<button class="ej-btn" onclick="elegirEj('${ej}','${cat}')">${ej} <span style="color:var(--text3);font-size:11px">${cat}</span></button>`;
+                    });
+                } else {
+                    html += `<button class="ej-btn" onclick="elegirEj('${document.getElementById('modalSearch').value}','')">+ Añadir "${document.getElementById('modalSearch').value}"</button>`;
+                }
+            } else {
+                for (const [cat, ejs] of Object.entries(EJS_BD)) {
+                    html += `<div class="ej-cat-label">${cat}</div>`;
+                    ejs.forEach(ej => {
+                        html += `<button class="ej-btn" onclick="elegirEj('${ej}','${cat}')">${ej}</button>`;
+                    });
+                }
+            }
+            lista.innerHTML = html;
+        }
+
+        function elegirEj(nombre, cat) {
+            addEjercicio(nombre, cat);
+            cerrarModal();
+            // Scroll al nuevo ejercicio
+            setTimeout(() => {
+                const bloques = document.querySelectorAll('.ej-bloque');
+                bloques[bloques.length - 1]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+
+        // ── GUARDAR ───────────────────────────────────────────────────────────
+        async function finalizarEntreno() {
+            const nombre = document.getElementById('nombreEntreno').value.trim() || 'Entreno';
+            const btn = document.getElementById('btnFinalizar');
+
+            // Filtrar ejercicios con al menos 1 serie hecha
+            const ejsValidos = ejercicios.filter(e => e.series.some(s => s.done));
+            if (!ejsValidos.length) {
+                GT.showToast('Completa al menos una serie antes de guardar', 'error');
+                return;
+            }
+
+            btn.textContent = 'Guardando...'; btn.disabled = true;
+
+            try {
+                const hoy = new Date().toISOString().split('T')[0];
+
+                const { data: entreno, error: e1 } = await GT.sb
+                    .from('entrenos')
+                    .insert({ usuario_id: user.id, nombre, fecha: hoy, notas: '' })
+                    .select().single();
+                if (e1) throw e1;
+
+                for (let i = 0; i < ejsValidos.length; i++) {
+                    const ej = ejsValidos[i];
+                    const { data: ejData, error: e2 } = await GT.sb
+                        .from('ejercicios')
+                        .insert({ entreno_id: entreno.id, nombre: ej.nombre, categoria: ej.cat, orden: i })
+                        .select().single();
+                    if (e2) throw e2;
+
+                    const seriesRows = ej.series
+                        .filter(s => s.done)
+                        .map((s, idx) => ({
+                            ejercicio_id: ejData.id,
+                            numero_serie: idx + 1,
+                            reps: parseInt(s.reps) || 0,
+                            peso_kg: parseFloat(s.kg) || 0,
+                        }));
+
+                    if (seriesRows.length) {
+                        const { error: e3 } = await GT.sb.from('series').insert(seriesRows);
+                        if (e3) throw e3;
+                    }
+                }
+
+                window.location.href = `./detalle.html?id=${entreno.id}`;
+            } catch (err) {
+                GT.showToast('Error al guardar: ' + (err.message || 'desconocido'), 'error');
+                btn.textContent = 'Finalizar entreno'; btn.disabled = false;
+            }
+        }
+
+        function confirmarSalida() {
+            if (totalSecs < 10 || confirm('¿Salir? El entreno en curso no se guardará.'))
+                window.location.href = './index.html';
+        }
+    </script>
+</body>
+
+</html>
