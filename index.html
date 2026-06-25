@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GYMtrack</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#639922">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+<link rel="stylesheet" href="./assets/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+
+  <div class="topbar">
+    <div class="logo">GYM<span>track</span></div>
+    <div class="top-actions">
+      <span class="usuario-nombre" id="nombreUsuario"></span>
+      <a href="./dashboard.html" class="icon-btn" title="Progreso">📈</a>
+      <button class="icon-btn icon-btn-green" id="btnExcel" title="Exportar Excel">📊</button>
+      <button class="icon-btn" id="btnLogout" title="Salir">⎋</button>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="searchInput" placeholder="Buscar entreno o ejercicio...">
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-cat="todos">Todos</button>
+    <button class="tab" data-cat="pecho">Pecho</button>
+    <button class="tab" data-cat="pierna">Pierna</button>
+    <button class="tab" data-cat="espalda">Espalda</button>
+    <button class="tab" data-cat="cardio">Cardio</button>
+  </div>
+
+  <div class="entrenos-lista" id="lista">
+    <div style="text-align:center;padding:3rem 1rem;color:var(--text2)">Cargando...</div>
+  </div>
+
+  <a href="./nuevo-entreno.html" class="add-fab" title="Nuevo entreno">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  </a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="./assets/js/gymtrack.js"></script>
+<script>
+let todosLoEntrenos = [];
+let filtroActivo = 'todos';
+
+(async () => {
+  const user = await GT.requireAuth();
+  if (!user) return;
+
+  // Nombre usuario
+  document.getElementById('nombreUsuario').textContent =
+    user.user_metadata?.nombre || user.email.split('@')[0];
+
+  // Logout
+  document.getElementById('btnLogout').addEventListener('click', async () => {
+    await GT.sb.auth.signOut();
+    window.location.href = './login.html';
+  });
+
+  // Excel con SheetJS
+  document.getElementById('btnExcel').addEventListener('click', () => GT.exportarExcel());
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      filtroActivo = tab.dataset.cat;
+      renderLista();
+    });
+  });
+
+  // Búsqueda
+  document.getElementById('searchInput').addEventListener('input', renderLista);
+
+  // Cargar datos
+  await cargarEntrenos(user.id);
+})();
+
+async function cargarEntrenos(uid) {
+  const { data, error } = await GT.sb
+    .from('entrenos')
+    .select(`id, nombre, fecha, foto_portada,
+             ejercicios(nombre, series(peso_kg))`)
+    .eq('usuario_id', uid)
+    .order('fecha', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  if (error) { document.getElementById('lista').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text2)">Error cargando datos</div>'; return; }
+
+  todosLoEntrenos = (data || []).map(e => {
+    const pesos = e.ejercicios.flatMap(ej => ej.series.map(s => s.peso_kg || 0));
+    return { ...e, max_peso: pesos.length ? Math.max(...pesos) : 0, _busqueda: (e.nombre + ' ' + e.ejercicios.map(ej => ej.nombre).join(' ')).toLowerCase() };
+  });
+
+  renderLista();
+}
+
+function renderLista() {
+  const q     = document.getElementById('searchInput').value.toLowerCase();
+  const lista = document.getElementById('lista');
+
+  let filtrados = todosLoEntrenos.filter(e => {
+    const matchCat = filtroActivo === 'todos' || e.nombre.toLowerCase().includes(filtroActivo);
+    const matchQ   = !q || e._busqueda.includes(q);
+    return matchCat && matchQ;
+  });
+
+  if (!filtrados.length) {
+    lista.innerHTML = `<div class="empty-state"><div class="empty-icon">🏋️</div><p>Aún no tienes entrenos.<br>¡Pulsa + para registrar el primero!</p></div>`;
+    return;
+  }
+
+  const grupos = GT.agruparPorFecha(filtrados);
+  let html = '';
+
+  for (const [grupo, items] of Object.entries(grupos)) {
+    html += `<div class="section-label">${grupo}</div>`;
+    for (const e of items) {
+      const emoji   = GT.getEmoji(e.nombre);
+      const color   = GT.getBgColor(e.nombre);
+      const ejNames = e.ejercicios.map(ej => ej.nombre).join(' · ') || 'Sin ejercicios';
+      const tiempo  = GT.formatRelativa(e.fecha);
+      html += `
+        <a href="./detalle.html?id=${e.id}" class="entreno-row">
+          <div class="avatar" style="background:${color}">
+            ${e.foto_portada ? `<img src="${e.foto_portada}" alt="">` : `<span class="avatar-emoji">${emoji}</span>`}
+          </div>
+          <div class="info">
+            <div class="row1">
+              <span class="ej-name">${e.nombre}</span>
+              <span class="time">${tiempo}</span>
+            </div>
+            <div class="row2">
+              <span class="preview">${ejNames}</span>
+              ${e.max_peso ? `<span class="badge-kg">${e.max_peso}kg</span>` : ''}
+            </div>
+          </div>
+        </a>
+        <div class="separator"></div>`;
+    }
+  }
+
+  lista.innerHTML = html;
+}
+</script>
+</body>
+</html>
