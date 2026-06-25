@@ -1,7 +1,7 @@
-// gymtrack.js — cliente Supabase compartido + helpers
-// ⚠️ Cambia estas dos líneas con tus datos de Supabase
-const SUPABASE_URL      = 'https://TU_PROYECTO.supabase.co';
-const SUPABASE_ANON_KEY = 'TU_ANON_KEY';
+
+const SUPABASE_URL = 'https://rnpinqqblwklwovizvty.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_JkeBvZ5cCp0SKuXjCR7Hiw_dIi_4PCg';
+
 
 const GT = (() => {
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -159,7 +159,7 @@ const GT = (() => {
     XLSX.utils.book_append_sheet(wb, ws2, 'Progreso');
 
     const fecha = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `gymtrack_${fecha}.xlsx`);
+    XLSX.writeFile(wb, `forja-kuerpo_${fecha}.xlsx`);
     showToast('Excel descargado ✓');
   }
 

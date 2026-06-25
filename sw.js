@@ -1,5 +1,5 @@
-// GYMtrack — Service Worker
-const CACHE_NAME = 'gymtrack-v1';
+// Forja-Kuerpo — Service Worker
+const CACHE_NAME = 'forja-kuerpo-v1';
 
 // Archivos que se guardan en caché para funcionar offline
 const CACHE_STATIC = [
